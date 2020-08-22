@@ -12,7 +12,8 @@ function getTypeFromRequest(array $get, array $post = []) : ?int
 {
     if (isset($get['type_id'])) {
         return empty($get['type_id']) ? null : (int) $get['type_id'];
-    } elseif (isset($post['type_id'])) {
+    }
+    if (isset($post['type_id'])) {
         return (int) $post['type_id'];
     }
     return null;
@@ -30,7 +31,8 @@ function getPostIdFromRequest(array $get, array $post = []) : ?int
 {
     if (isset($get['post_id'])) {
         return (int) $get['post_id'];
-    } elseif (isset($post['post_id'])) {
+    }
+    if (isset($post['post_id'])) {
         return (int) $post['post_id'];
     }
     return null;
@@ -61,7 +63,7 @@ function getSortFromRequest(array $arr) : string
  */
 function getTabFromRequest(array $arr) : string
 {
-    if (!isParameterValid($arr, 'tab')) {
+    if (!isTabValid($arr, 'tab')) {
         exit('Некорректный параметр tab');
     }
 
@@ -80,7 +82,8 @@ function getUserIdFromRequest(array $get, array $post = []) : ?int
 {
     if (isset($get['user_id'])) {
         return (int) $get['user_id'];
-    } elseif (isset($post['user_id'])) {
+    }
+    if (isset($post['user_id'])) {
         return (int) $post['user_id'];
     }
     return null;
@@ -97,4 +100,73 @@ function getUserIdFromRequest(array $get, array $post = []) : ?int
 function getPostVal(array $arr, string $key) : string
 {
     return $arr[$key] ?? "";
+}
+
+/**
+ * Выборка постов по строке поиска
+ *
+ * @param mysqli $con Объект-соединение с БД
+ * @param string $search строка поиска
+ *
+ * @return array Ассоциативный массив
+ */
+function getPostsSearch(mysqli $con, string $search) : array
+{
+    $search_string = trim($search);
+
+    if (empty($search_string)) {
+        return [];
+    }
+
+    if (mb_substr($search_string, 0, 1) === '#') {
+        return dbGetPostsSearchHashtag($con, mb_substr($search_string, 1));
+    }
+
+    return dbGetPostsSearchFulltext($con, $search_string);
+}
+
+/**
+ * Получение списка пользователей, имеющих сообщения с текущим пользователем
+ * Список отсортирован по дате создания сообщения
+ *
+ * @param mysqli $con Объект-соединение с БД
+ * @param int    $user_id id пользователя
+ *
+ * @return array Ассоциативный массив Результат запроса
+ */
+function getContactsMessages(mysqli $con, int $user_id) : array
+{
+    $contacts = dbGetContactsMessages($con, $user_id);
+
+    // отфильтровываются уникальные значения $user_id
+    $contacts_uniq = [];
+    $user_id = 0;
+    foreach ($contacts as $value) {
+        if ($user_id != $value['user_id']) {
+            $contacts_uniq[] = $value;
+        }
+        $user_id = $value['user_id'];
+    }
+
+    //сортировка
+    $contacts_sort = sortBubbleDescArray($contacts_uniq, 'creation_time');
+
+    return $contacts_sort;
+}
+
+/**
+ * Возвращает номер страницы для пагинации
+ *
+ * @param array $get Ассоциативный массив, переданный методом get
+ * @param int   $count_pages количество страниц для полного вывода результата запроса
+ *
+ * @return int номер страницы
+ */
+function getPageNumber(array $get, int $count_pages) : int
+{
+    $page = isset($get['page']) ? (int) $get['page'] : 1;
+    if ($page > $count_pages) {
+        $page = $count_pages;
+    }
+    return $page;
 }

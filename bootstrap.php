@@ -11,9 +11,14 @@ require_once 'vendor/autoload.php';
 require_once 'functions/template.php';
 require_once 'functions/validators.php';
 require_once 'functions/db.php';
+require_once 'functions/dbget.php';
+require_once 'functions/dbadd.php';
+require_once 'functions/dbfind.php';
 require_once 'functions/requests.php';
 require_once 'functions/file.php';
 require_once 'functions/mail.php';
+require_once 'functions/append.php';
+require_once 'functions/click.php';
 
 if (!file_exists('config.php')) {
     exit('Создайте файл config.php на основе config.sample.php и сконфигурируйте его');

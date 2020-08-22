@@ -34,21 +34,11 @@ if (isset($_POST['comment']) && $errors === []) {
     }
 }
 
-// кликнута иконка лайк
-if (isset($_GET['like_onClick'])) {
-    if (addLike($connect, (int) $_GET['post_id'], $user_id_login)) {
-        $referer = $_SERVER['HTTP_REFERER'];
-        header('Location: '.$referer);
-    }
-}
+// проверка клика иконки лайк
+checkLike($connect, $_GET, $user_id_login);
 
-// кликнута иконка repost
-if (isset($_GET['repost_onClick'])) {
-    if (addRepost($connect, $post_id, $user_id_login)) {
-        $url = "profile.php?user_id=$user_id_login";
-        header('Location: '.$url);
-    }
-}
+// проверка клика иконки repost
+checkRepost($connect, $_GET, $user_id_login);
 
 // автор поста
 $user_id = $post['user_id'];
